@@ -16,8 +16,8 @@ getwd()
 ```r
 unzip("activity.zip")
 
-# read the data into data frame df
-df <- read.csv("activity.csv")
+# read the data into data frame dataFrame
+dataFrame <- read.csv("activity.csv")
 ```
 
 ## What is mean total number of steps taken per day?
@@ -25,13 +25,13 @@ df <- read.csv("activity.csv")
 
 ```r
 # calculate  total number of steps per each day
-steps_daily <- aggregate(steps~date, data=df, FUN =sum)
+steps_daily <- aggregate(steps~date, data=dataFrame, FUN =sum)
 ```
 
 ```r
 # histogram of the total number of steps per each day
 hist(steps_daily$steps, breaks=nrow(steps_daily), main="Total Number of Steps Per Day",
-     xlab="Steps Per Day", col="red")
+     xlab="Steps Per Day", col="blue")
 ```
 
 ![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3.png) 
@@ -49,7 +49,7 @@ The median total number of steps taken per day is 10765
 
 ```r
 # find the average number of steps per 5 minute interval steps
-avg_interval <- aggregate(steps~interval, data=df, FUN=mean)
+avg_interval <- aggregate(steps~interval, data=dataFrame, FUN=mean)
 ```
 
 ```r
@@ -72,7 +72,7 @@ The 5-minute interval, on average across all the days in the dataset, that conta
 
 ```r
 ## calculate the number of missing values in the dataset 
-num_missing <- sum(is.na(df))
+num_missing <- sum(is.na(dataFrame))
 ```
 The total number of missing values in the dataset is 2304.  
 
@@ -84,8 +84,8 @@ The missing values will be imputed by replacing step NAs with the mean of the 5-
 # (imputed with mean of the 5-minute interval)
 
 new_steps <- numeric()
-for(i in 1:nrow(df)) {
-    temp <- df[i,]
+for(i in 1:nrow(dataFrame)) {
+    temp <- dataFrame[i,]
     if (is.na(temp$steps)) {
         steps <- subset(avg_interval,interval==temp$interval)$steps
     } else {
@@ -95,18 +95,18 @@ for(i in 1:nrow(df)) {
 }
 
 ## create a new dataset  with imputed steps for the missing steps.
-new_df <- df
-new_df$steps <- new_steps
+new_dataFrame <- dataFrame
+new_dataFrame$steps <- new_steps
 
 # calculate the total number of steps per each day
-new_steps_daily <- aggregate(steps~date, data=new_df, FUN=sum)
+new_steps_daily <- aggregate(steps~date, data=new_dataFrame, FUN=sum)
 ```
 
 ```r
 # histogram of the total number of steps taken each day
 hist(new_steps_daily$steps, breaks=nrow(new_steps_daily), 
      main="Total Number of Steps Per Day With Imputed Values",
-     xlab="Steps Per Day", col="blue")
+     xlab="Steps Per Day", col="green")
 ```
 
 ![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
@@ -128,13 +128,14 @@ The impact of the imputation was a little increase in the median total number of
 ```r
 ## change date column from factor to Date
 
-new_df$date <- as.Date(new_df$date)
+new_dataFrame$date <- as.Date(new_dataFrame$date)
 
 ## Create a new variable with two levels "weekday" and "weekend" 
 ## to indicate if date is a weekday or weekend day.
 
 weekend_days <- c("Saturday","Sunday")
-new_df$day_type <- as.factor(sapply(new_df$date, function(x) ifelse(weekdays(x) %in% weekend_days,"weekend","weekday")))
+new_dataFrame$day_type <- as.factor(sapply(new_dataFrame$date, 
+                                    function(x) ifelse(weekdays(x) %in% weekend_days,"weekend","weekday")))
 ```
 
 ```r
@@ -144,7 +145,7 @@ new_df$day_type <- as.factor(sapply(new_df$date, function(x) ifelse(weekdays(x) 
 
 
 require(plyr)
-avg_steps <- ddply(new_df, .(interval, day_type), summarize, steps = mean(steps))
+avg_steps <- ddply(new_dataFrame, .(interval, day_type), summarize, steps = mean(steps))
 
 require(lattice)
 xyplot(steps ~ interval | day_type, data = avg_steps, layout = c(1, 2), type = "l", 
